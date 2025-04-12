@@ -12,6 +12,7 @@ import {
   userSchema,
   verificationTokenSchema,
 } from "./schema";
+import { internalSecret } from "./constants";
 
 const adapterQuery = customQuery(query, {
   args: { secret: v.string() },
@@ -30,12 +31,7 @@ const adapterMutation = customMutation(mutation, {
 });
 
 function checkSecret(secret: string) {
-	if (process.env.CONVEX_AUTH_ADAPTER_SECRET === undefined) {
-    throw new Error(
-      "Missing CONVEX_AUTH_ADAPTER_SECRET Convex environment variable",
-    );
-  }
-  if (secret !== process.env.CONVEX_AUTH_ADAPTER_SECRET) {
+  if (secret !== internalSecret) {
     throw new Error("Adapter API called without correct secret value");
   }
 }
@@ -57,7 +53,7 @@ export const createSession = adapterMutation({
 export const createUser = adapterMutation({
   args: { user: v.object(userSchema) },
   handler: async (ctx, { user }) => {
-    return await ctx.db.insert("users", user);
+    return await ctx.db.insert("users", user as any);
   },
 });
 
@@ -115,7 +111,7 @@ export const getAccount = adapterQuery({
     return await ctx.db
       .query("accounts")
       .withIndex("providerAndAccountId", (q) =>
-        q.eq("provider", provider).eq("providerAccountId", providerAccountId),
+        q.eq("provider", provider).eq("providerAccountId", providerAccountId)
       )
       .unique();
   },
@@ -142,7 +138,6 @@ export const getSessionAndUser = adapterQuery({
       return null;
     }
     const user = await ctx.db.get(session.userId);
-    
     if (user === null) {
       return null;
     }
@@ -163,7 +158,7 @@ export const getUserByAccount = adapterQuery({
     const account = await ctx.db
       .query("accounts")
       .withIndex("providerAndAccountId", (q) =>
-        q.eq("provider", provider).eq("providerAccountId", providerAccountId),
+        q.eq("provider", provider).eq("providerAccountId", providerAccountId)
       )
       .unique();
     if (account === null) {
@@ -207,7 +202,7 @@ export const unlinkAccount = adapterMutation({
     const account = await ctx.db
       .query("accounts")
       .withIndex("providerAndAccountId", (q) =>
-        q.eq("provider", provider).eq("providerAccountId", providerAccountId),
+        q.eq("provider", provider).eq("providerAccountId", providerAccountId)
       )
       .unique();
     if (account === null) {
@@ -227,7 +222,7 @@ export const updateAuthenticatorCounter = adapterMutation({
       .unique();
     if (authenticator === null) {
       throw new Error(
-        `Authenticator not found for credentialID: ${credentialID}`,
+        `Authenticator not found for credentialID: ${credentialID}`
       );
     }
     await ctx.db.patch(authenticator._id, { counter: newCounter });
@@ -246,7 +241,7 @@ export const updateSession = adapterMutation({
     const existingSession = await ctx.db
       .query("sessions")
       .withIndex("sessionToken", (q) =>
-        q.eq("sessionToken", session.sessionToken),
+        q.eq("sessionToken", session.sessionToken)
       )
       .unique();
     if (existingSession === null) {
@@ -278,7 +273,7 @@ export const useVerificationToken = adapterMutation({
     const verificationToken = await ctx.db
       .query("verificationTokens")
       .withIndex("identifierToken", (q) =>
-        q.eq("identifier", identifier).eq("token", token),
+        q.eq("identifier", identifier).eq("token", token)
       )
       .unique();
     if (verificationToken === null) {

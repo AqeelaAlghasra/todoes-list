@@ -4,6 +4,7 @@ import  Providers  from "../providers";
 import { useSession } from "next-auth/react";
 
 
+
 export default async function LoggedInLayout({
   children,
 }: Readonly<{
@@ -11,6 +12,6 @@ export default async function LoggedInLayout({
 }>) {
   const session = await auth();
   return (
-    <Providers session={session}>{children}</Providers>
+      <Providers session={session}>{children}</Providers>
   );
 }

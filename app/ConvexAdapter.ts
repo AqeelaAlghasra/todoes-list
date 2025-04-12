@@ -17,7 +17,7 @@ type User = AdapterUser & { id: Id<"users"> };
 type Session = AdapterSession & { userId: Id<"users"> };
 type Account = AdapterAccount & { userId: Id<"users"> };
 type Authenticator = Omit<AdapterAuthenticator, 'transports'> & { 
-  : Id<"users">;
+  userId: Id<"users">;
   transports?: string;
 };
 

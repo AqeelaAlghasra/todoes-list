@@ -44,7 +44,7 @@ const FormSchema = z.object({
   description: z.string().optional().default(""),
   dueDate: z.date({ required_error: "A due date is required" }),
   priority: z.string().min(1, { message: "Please select a priority" }),
-  projectId: z.string().min(1, { message: "Please select a Project Id" }),
+  projectId: z.string().min(1, { message: "Please select a Project" }),
   labelId: z.string().min(1, { message: "Please select a Label" }),
 });
 
@@ -62,25 +62,28 @@ export default function AddTaskInline({
     parentTask?.projectId ||
     (GET_STARTED_PROJECT_ID as Id<"projects">);
 
+  const labelId =
+    parentTask?.labelId || ("k579xwsz7e2y73rxexkrg2f5j96tzt4f" as Id<"labels">);
   const priority = parentTask?.priority?.toString() || "1";
   const parentId = parentTask?._id;
-  const projects = useQuery(api.projects.getProjects) ?? [] ;
-  const labels = useQuery(api.labels.getLabels) ?? [];
+
   const { toast } = useToast();
+  const projects = useQuery(api.projects.getProjects) ?? [];
+  const labels = useQuery(api.labels.getLabels) ?? [];
 
   const createASubTodoEmbeddings = useAction(
     api.subTodos.createSubTodoAndEmbeddings
   );
 
-  const createTodo = useMutation(api.todos.createATodo);
+  const createTodoEmbeddings = useAction(api.todos.createTodoAndEmbeddings);
 
   const defaultValues = {
     taskName: "",
     description: "",
-    priority:"1",
-    projectId:"k57ddamc8a2r7yca0nx24e5c317dq1ma",
-    labelId:"k17f031pms2c6a32yk7zvymj817dr190",
+    priority,
     dueDate: new Date(),
+    projectId,
+    labelId,
   };
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -89,75 +92,51 @@ export default function AddTaskInline({
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const { taskName, description, priority, projectId,labelId, dueDate } = data;
+    const { taskName, description, priority, dueDate, projectId, labelId } =
+      data;
 
-    console.log("Submitting task with:", {
-      taskName,
-      description,
-      priority,
-      dueDate,
-      projectId,
-      labelId,
-      parentId
-    });
-
-    if (parentId) {
-      //subtodo
-      const mutationId = createASubTodoEmbeddings({
-        parentId,
-        taskName,
-        description,
-        priority: parseInt(priority),
-        dueDate: moment(dueDate).valueOf(),
-        projectId: projectId as Id<"projects">,
-        labelId: labelId as Id<"labels">,
-      });
-
-      if (mutationId !== undefined) {
-        console.log("Successfully created subtask with ID:", mutationId);
-        toast({
-          title: "🦄 Created a task!",
-          duration: 3000,
+    if (projectId) {
+      if (parentId) {
+        //subtodo
+        const mutationId = createASubTodoEmbeddings({
+          parentId,
+          taskName,
+          description,
+          priority: parseInt(priority),
+          dueDate: moment(dueDate).valueOf(),
+          projectId: projectId as Id<"projects">,
+          labelId: labelId as Id<"labels">,
         });
-        form.reset({ ...defaultValues });
+
+        if (mutationId !== undefined) {
+          toast({
+            title: "🦄 Created a task!",
+            duration: 3000,
+          });
+          form.reset({ ...defaultValues });
+        }
       } else {
-        console.error("Failed to create subtask");
-        toast({
-          title: "❌ Failed to create task",
-          description: "Please try again",
-          duration: 3000,
+        const mutationId = createTodoEmbeddings({
+          taskName,
+          description,
+          priority: parseInt(priority),
+          dueDate: moment(dueDate).valueOf(),
+          projectId: projectId as Id<"projects">,
+          labelId: labelId as Id<"labels">,
         });
-      }
-    } else {
-      const mutationId = createTodo({
-        taskName,
-        description,
-        priority: parseInt(priority),
-        dueDate: moment(dueDate).valueOf(),
-        projectId: projectId as Id<"projects">,
-        labelId: labelId as Id<"labels">,
-      });
 
-      if (mutationId !== undefined) {
-        console.log("Successfully created task with ID:", mutationId);
-        toast({
-          title: "🦄 Created a task!",
-          duration: 3000,
-        });
-        form.reset({ ...defaultValues });
-      } else {
-        console.error("Failed to create task");
-        toast({
-          title: "❌ Failed to create task",
-          description: "Please try again",
-          duration: 3000,
-        });
+        if (mutationId !== undefined) {
+          toast({
+            title: "🦄 Created a task!",
+            duration: 3000,
+          });
+          form.reset({ ...defaultValues });
+        }
       }
     }
   }
   return (
     <div>
-      {JSON.stringify(form.getValues(),null,2)}
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -245,7 +224,7 @@ export default function AddTaskInline({
                 <FormItem>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={"1"}
+                    defaultValue={priority}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -272,7 +251,7 @@ export default function AddTaskInline({
                 <FormItem>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={labelId || field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -280,9 +259,9 @@ export default function AddTaskInline({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {labels.map((label: Doc<"labels">, idx:number) => (
-                        <SelectItem key={idx} value={label._id.toString()}>
-                           {label?.name}
+                      {labels.map((label: Doc<"labels">, idx: number) => (
+                        <SelectItem key={idx} value={label._id}>
+                          {label?.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -294,32 +273,32 @@ export default function AddTaskInline({
             />
           </div>
           <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a Project Id" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {projects.map((project:Doc<"projects">, idx:number) => (
-                        <SelectItem key={idx} value={project._id.toString()}>
-                          {project?.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            control={form.control}
+            name="projectId"
+            render={({ field }) => (
+              <FormItem>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={projectId || field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a Project" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {projects.map((project: Doc<"projects">, idx: number) => (
+                      <SelectItem key={idx} value={project._id}>
+                        {project?.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <CardFooter className="flex flex-col lg:flex-row lg:justify-between gap-2 border-t-2 pt-3">
             <div className="w-full lg:w-1/4"></div>
             <div className="flex gap-3 self-end">

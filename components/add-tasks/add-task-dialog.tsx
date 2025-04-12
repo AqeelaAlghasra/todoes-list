@@ -82,17 +82,17 @@ export default function AddTaskDialog({ data }: { data: Doc<"todos"> }) {
   };
 
   return (
-    <DialogContent className="w-[95vw] max-w-4xl h-[90vh] md:h-[80vh] flex flex-col md:flex-row lg:justify-between text-right overflow-y-auto">
-      <DialogHeader className="w-full md:w-3/5 lg:w-2/3">
-        <DialogTitle className="text-left text-xl md:text-2xl">{taskName}</DialogTitle>
+    <DialogContent className="max-w-4xl lg:h-4/6 flex flex-col md:flex-row lg:justify-between text-right">
+      <DialogHeader className="w-full">
+        <DialogTitle>{taskName}</DialogTitle>
         <DialogDescription>
-          <p className="my-2 capitalize text-left">{description}</p>
-          <div className="flex items-center gap-1 mt-8 md:mt-12 border-b-2 border-gray-100 pb-2 flex-wrap sm:justify-between lg:gap-0">
+          <p className="my-2 capitalize">{description}</p>
+          <div className="flex items-center gap-1 mt-12 border-b-2 border-gray-100 pb-2 flex-wrap sm:justify-between lg:gap-0 ">
             <div className="flex gap-1">
               <ChevronDown className="w-5 h-5 text-primary" />
               <p className="font-bold flex text-sm text-gray-900">Sub-tasks</p>
             </div>
-            <div className="w-full sm:w-auto mt-2 sm:mt-0">
+            <div>
               <SuggestMissingTasks
                 projectId={projectId}
                 taskName={taskName}
@@ -102,7 +102,7 @@ export default function AddTaskDialog({ data }: { data: Doc<"todos"> }) {
               />
             </div>
           </div>
-          <div className="pl-2 md:pl-4">
+          <div className="pl-4">
             {inCompletedSubtodosByProject.map((task) => {
               return (
                 <Task
@@ -133,11 +133,11 @@ export default function AddTaskDialog({ data }: { data: Doc<"todos"> }) {
           </div>
         </DialogDescription>
       </DialogHeader>
-      <div className="flex flex-col gap-2 bg-gray-100 md:w-2/5 lg:w-1/3 rounded-lg mt-4 md:mt-0">
+      <div className="flex flex-col gap-2 bg-gray-100 lg:w-1/2">
         {todoDetails.map(({ labelName, value, icon }, idx) => (
           <div
             key={`${value}-${idx}`}
-            className="grid gap-2 p-3 md:p-4 border-b-2 w-full"
+            className="grid gap-2 p-4 border-b-2 w-full"
           >
             <Label className="flex items-start">{labelName}</Label>
             <div className="flex text-left items-center justify-start gap-2 pb-2">
