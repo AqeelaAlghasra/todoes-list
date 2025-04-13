@@ -333,7 +333,7 @@ export const createTodoAndEmbeddings = action({
     priority: v.number(),
     dueDate: v.number(),
     projectId: v.id("projects"),
-    labelId: v.id("labels"),
+    labelId: v.optional(v.id("labels")),
   },
   handler: async (
     ctx,
