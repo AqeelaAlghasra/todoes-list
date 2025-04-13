@@ -12,10 +12,7 @@ export const getLabels = query({
         .filter((q) => q.eq(q.field("userId"), userId))
         .collect();
 
-      const systemLabels = await ctx.db
-        .query("labels")
-        .filter((q) => q.eq(q.field("type"), "system"))
-        .collect();
+      const systemLabels = await ctx.db.query("labels").collect();
 
       return [...systemLabels, ...userLabels];
     }
@@ -61,25 +58,6 @@ export const createALabel = mutation({
     } catch (err) {
       console.log("Error occurred during createALabel mutation", err);
 
-      return null;
-    }
-  },
-});
-
-export const createSystemLabel = mutation({
-  args: {
-    name: v.string(),
-  },
-  handler: async (ctx, { name }) => {
-    try {
-      const newLabelId = await ctx.db.insert("labels", {
-        userId: null,
-        name,
-        type: "system",
-      });
-      return newLabelId;
-    } catch (err) {
-      console.log("Error occurred during createSystemLabel mutation", err);
       return null;
     }
   },

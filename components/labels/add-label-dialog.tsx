@@ -42,15 +42,26 @@ export default function AddLabelDialog() {
       setIsLoading(true);
       const labelId: Id<"labels"> | null = await addLabelMutation({ name });
 
-      if (labelId != undefined) {
-        router.push(`/loggedin/filter-labels/${labelId}`);
-        // document.getElementById("closeDialog")?.click();
+      // if (labelId != undefined) {
+      //   router.push(`/loggedin/filter-labels/${labelId}`);
+      //   // document.getElementById("closeDialog")?.click();
 
+      //   toast({
+      //     title: "😎 Successfully created a Label!",
+      //     duration: 3000,
+      //   });
+      //   setIsLoading(false);
+      // }
+
+      if (labelId !== undefined) {
         toast({
-          title: "😎 Successfully created a Label!",
-          duration: 5000,
+          title: "🚀 Successfully created a Label!!",
+          duration: 3000,
         });
-        setIsLoading(false);
+        document.getElementById("closeDialog")?.click();
+        form.reset({ name: "" });
+        setIsLoading(false)
+        // router.push(`/loggedin/filter-lables/${labelId}`);
       }
     }
   };

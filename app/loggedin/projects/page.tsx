@@ -1,4 +1,4 @@
-import ProjectList from "@/components/containers/projects";
+import LabelsList from "@/components/containers/projects";
 import MobileNav from "@/components/nav/mobile-nav";
 import SideBar from "@/components/nav/side-bar";
 
@@ -9,7 +9,7 @@ export default function Projects() {
       <div className="flex flex-col">
         <MobileNav />
         <main className="flex flex-1 flex-col gap-4 p-4 lg:px-8">
-          <ProjectList />
+          <LabelsList />
         </main>
       </div>
     </div>

@@ -17,6 +17,7 @@ export const primaryNavItems = [
     link: "/loggedin/upcoming",
     icon: <CalendarDays className="w-4 h-4" />,
   },
+ 
   {
     id: "filters",
     name: "Filters & Labels",

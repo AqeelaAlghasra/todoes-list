@@ -15,7 +15,7 @@ export default function Home() {
         <main className="flex flex-1 flex-col gap-4 p-2 sm:p-4 lg:px-8">
           <div className="w-full max-w-5xl mx-auto">
             <TodoList />
-            <Tasks />
+            {/* <Tasks /> */}
           </div>
         </main>
       </div>

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { primaryNavItems } from "@/utils";
-
+import UserProfile from "./user-profile";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { api } from "@/convex/_generated/api";
@@ -21,7 +21,6 @@ import { Doc } from "@/convex/_generated/dataModel";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import AddProjectDialog from "../projects/add-project-dialog";
 import AddLabelDialog from "../labels/add-label-dialog";
-import UserProfile from "./user-profile";
 
 interface MyListTitleType {
   [key: string]: string;
@@ -70,7 +69,7 @@ export default function SideBar() {
                 <div
                   className={cn(
                     "flex items-center mt-6 mb-2",
-                    id === "filters" && "my-0"
+                    id === "labels" && "my-0"
                   )}
                 >
                   <p className="flex flex-1 text-base">
@@ -124,7 +123,7 @@ export default function SideBar() {
         </nav>
       </div>
       <div className="mt-auto p-4">
-        <Card x-chunk="loggedin-02-chunk-0">
+        <Card x-chunk="dashboard-02-chunk-0">
           <CardHeader className="p-2 pt-0 md:p-4">
             <CardTitle>Upgrade to Pro</CardTitle>
             <CardDescription>

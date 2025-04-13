@@ -3,6 +3,7 @@ import { query, mutation, action } from "./_generated/server";
 import { v } from "convex/values";
 import { handleUserId } from "./auth";
 import moment from "moment";
+import { getEmbeddingsWithAI } from "./openai";
 import { api } from "./_generated/api";
 
 export const get = query({
@@ -19,6 +20,95 @@ export const get = query({
   },
 });
 
+export const getTasksSortedByDueDate = query({
+args: {},
+handler: async (ctx) => {
+const userId = await handleUserId(ctx);
+if (userId) {
+  const todos = await ctx.db
+    .query("todos")
+    .filter((q) => q.eq(q.field("userId"), userId))
+    .filter((q) => q.eq(q.field("isCompleted"), false))
+    .collect();
+  
+  // Sort by due date (earliest first)
+  return todos.sort((a, b) => a.dueDate - b.dueDate);
+}
+return [];
+},
+});
+
+// export const getTodosByLabelId = query({
+//   args: {
+//     labelId: v.id("labels"),
+//   },
+//   handler: async (ctx, { labelId }) => {
+//     const userId = await handleUserId(ctx);
+//     if (userId) {
+//       return await ctx.db
+//         .query("todos")
+//         .filter((q) => q.eq(q.field("userId"), userId))
+//         .filter((q) => q.eq(q.field("labelId"), labelId))
+//         .collect();
+//     }
+//     return [];
+//   },
+// });
+
+// export const getTodosTotalByLabelId = query({
+//   args: {
+//     labelId: v.id("labels"),
+//   },
+//   handler: async (ctx, { labelId }) => {
+//     const userId = await handleUserId(ctx);
+//     if (userId) {
+//       const todos = await ctx.db
+//         .query("todos")
+//         .filter((q) => q.eq(q.field("userId"), userId))
+//         .filter((q) => q.eq(q.field("labelId"), labelId))
+//         .filter((q) => q.eq(q.field("isCompleted"), true))
+//         .collect();
+
+//       return todos?.length || 0;
+//     }
+//     return 0;
+//   },
+// });
+
+// export const getCompletedTodosByLabelId = query({
+//   args: {
+//     labelId: v.id("labels"),
+//   },
+//   handler: async (ctx, { labelId }) => {
+//     const userId = await handleUserId(ctx);
+//     if (userId) {
+//       return await ctx.db
+//         .query("todos")
+//         .filter((q) => q.eq(q.field("userId"), userId))
+//         .filter((q) => q.eq(q.field("labelId"), labelId))
+//         .filter((q) => q.eq(q.field("isCompleted"), true))
+//         .collect();
+//     }
+//     return [];
+//   },
+// });
+// export const getInCompletedTodosByLabelId = query({
+//   args: {
+//     labelId: v.id("labels"),
+//   },
+//   handler: async (ctx, { labelId }) => {
+//     const userId = await handleUserId(ctx);
+//     if (userId) {
+//       return await ctx.db
+//         .query("todos")
+//         .filter((q) => q.eq(q.field("userId"), userId))
+//         .filter((q) => q.eq(q.field("labelId"), labelId))
+//         .filter((q) => q.eq(q.field("isCompleted"), false))
+//         .collect();
+//     }
+//     return [];
+//   },
+// });
 export const getCompletedTodosByProjectId = query({
   args: {
     projectId: v.id("projects"),
@@ -180,24 +270,6 @@ export const totalTodos = query({
   },
 });
 
-export const getTasksSortedByDueDate = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await handleUserId(ctx);
-    if (userId) {
-      const todos = await ctx.db
-        .query("todos")
-        .filter((q) => q.eq(q.field("userId"), userId))
-        .filter((q) => q.eq(q.field("isCompleted"), false))
-        .collect();
-      
-      // Sort by due date (earliest first)
-      return todos.sort((a, b) => a.dueDate - b.dueDate);
-    }
-    return [];
-  },
-});
-
 export const checkATodo = mutation({
   args: { taskId: v.id("todos") },
   handler: async (ctx, { taskId }) => {
@@ -222,57 +294,33 @@ export const createATodo = mutation({
     dueDate: v.number(),
     projectId: v.id("projects"),
     labelId: v.id("labels"),
+    embedding: v.optional(v.array(v.float64())),
   },
   handler: async (
     ctx,
-    { taskName, description, priority, dueDate, projectId, labelId }
+    { taskName, description, priority, dueDate, projectId, labelId, embedding }
   ) => {
     try {
       const userId = await handleUserId(ctx);
-      console.log("Creating todo with:", {
-        userId,
-        taskName,
-        description,
-        priority,
-        dueDate,
-        projectId,
-        labelId,
-      });
-      
-      if (!userId) {
-        console.error("No user ID found - user not authenticated");
-        return null;
+      if (userId) {
+        const newTaskId = await ctx.db.insert("todos", {
+          userId,
+          taskName,
+          description,
+          priority,
+          dueDate,
+          projectId,
+          labelId,
+          isCompleted: false,
+          embedding,
+        });
+        return newTaskId;
       }
 
-      // Verify project exists
-      const project = await ctx.db.get(projectId);
-      if (!project) {
-        console.error("Project not found:", projectId);
-        return null;
-      }
-
-      // Verify label exists
-      const label = await ctx.db.get(labelId);
-      if (!label) {
-        console.error("Label not found:", labelId);
-        return null;
-      }
-
-      const newTaskId = await ctx.db.insert("todos", {
-        userId: "js721geg6tn7yymmhxtc6z91t97dgqn1" as Id<"users">,
-        taskName,
-        description,
-        priority,
-        dueDate,
-        projectId,
-        labelId,
-        isCompleted: false,
-      });
-      
-      console.log("Successfully created todo with ID:", newTaskId);
-      return newTaskId;
+      return null;
     } catch (err) {
-      console.error("Error occurred during createATodo mutation:", err);
+      console.log("Error occurred during createATodo mutation", err);
+
       return null;
     }
   },
@@ -291,6 +339,7 @@ export const createTodoAndEmbeddings = action({
     ctx,
     { taskName, description, priority, dueDate, projectId, labelId }
   ) => {
+    const embedding = await getEmbeddingsWithAI(taskName);
     await ctx.runMutation(api.todos.createATodo, {
       taskName,
       description,
@@ -298,6 +347,7 @@ export const createTodoAndEmbeddings = action({
       dueDate,
       projectId,
       labelId,
+      embedding,
     });
   },
 });

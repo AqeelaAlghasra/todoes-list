@@ -13,8 +13,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { primaryNavItems } from "@/utils";
 import Image from "next/image";
 import SearchForm from "./search-form";
-import ncstLogo from "@/public/logo/ncstLogo.png";
 import UserProfile from "./user-profile";
+
+import todovexLogo from "@/public/logo/ncstLogo.png";
 
 export default function MobileNav({
   navTitle = "",
@@ -24,7 +25,7 @@ export default function MobileNav({
   navLink?: string;
 }) {
   return (
-    <header className="flex h-14 items-center gap-2 border-b bg-muted/40 px-2 sm:px-4 lg:h-[60px] lg:px-6">
+    <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="outline" size="icon" className="shrink-0 md:hidden">
@@ -40,7 +41,7 @@ export default function MobileNav({
               <Link
                 key={idx}
                 href={link}
-                className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:bg-gray-100 hover:text-foreground transition-colors"
+                className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2  hover:text-foreground"
               >
                 {icon}
                 {name}
@@ -51,40 +52,21 @@ export default function MobileNav({
               <p className="flex flex-1 text-base">My Projects</p>
             </div>
           </nav>
-          <div className="mt-auto">
-            <Card>
-              <CardHeader className="p-3 sm:p-4">
-                <CardTitle className="text-lg">Upgrade to Pro</CardTitle>
-                <CardDescription>
-                  Unlock all features and get unlimited access to our support team.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </SheetContent>
       </Sheet>
-      <div className="flex items-center justify-between w-full gap-1 sm:gap-2 py-2">
+      <div className="flex items-center md:justify-between w-full gap-1 md:gap-2 py-2">
         <div className="lg:flex-1">
           <Link href={navLink}>
-            <p className="text-sm font-semibold text-foreground/70 w-20 sm:w-24">
+            <p className="text-sm font-semibold text-foreground/70 w-24">
               {navTitle}
             </p>
           </Link>
         </div>
-        <div className="flex-1 max-w-xl">
+        <div className="place-content-center w-full flex-1">
           <SearchForm />
         </div>
-        <div className="w-8 h-8 sm:w-12 sm:h-12 lg:w-16 lg:h-20 flex items-center justify-center">
-          <Image 
-            alt="logo" 
-            src={ncstLogo} 
-            className="w-full h-full object-contain"
-          />
+        <div className="place-content-center w-12 h-12 lg:w-16 lg:h-20">
+          <Image alt="logo" src={todovexLogo} />
         </div>
       </div>
     </header>
